@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Keyanna.age++</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout concept: the invitation is a GitHub-style pull request. Diff for the details, CI checks for the vibe, a review form for the RSVP, a tiny shell at the bottom. */
+:root{
+  --bg:#15121f; --panel:#1d1930; --line:#2f2947; --fg:#e9e4f7; --dim:#9a92b8;
+  --pink:#ff6f91; --mint:#7ee0c3; --amber:#ffc65c;
+  --add:rgba(126,224,195,.10); --del:rgba(255,111,145,.10);
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:14px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.wrap>*{min-width:0}
+a{color:var(--mint)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;color:var(--dim);font-size:13px}
+.bar b{color:var(--fg);font-weight:500}
+.bar .sl{color:var(--dim);padding:0 3px}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--mint);color:var(--mint);border-radius:999px;padding:2px 12px;font-size:12px}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mint);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,11vw,76px);line-height:.98;letter-spacing:-.025em;margin:6px 0 14px;cursor:pointer;text-wrap:balance}
+.hero h1 .pp{color:var(--pink)}
+.hero .sub{color:var(--dim);margin:0}
+.hero .sub code{color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:13px}
+.cursor{display:inline-block;width:.6em;height:1.05em;background:var(--amber);vertical-align:-.18em;margin-left:3px;animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.ph{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;padding:9px 14px;border-bottom:1px solid var(--line);color:var(--dim);font-size:12.5px}
+.ph b{color:var(--fg);font-weight:500}
+
+.count{display:grid;grid-template-columns:repeat(4,1fr)}
+.count div{padding:14px 8px;text-align:center;border-right:1px solid var(--line)}
+.count div:last-child{border-right:0}
+.count strong{display:block;font-size:clamp(26px,8vw,40px);font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--amber)}
+.count span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.count.done{display:block;padding:18px;text-align:center;color:var(--mint)}
+
+.diff{overflow-x:auto;padding:6px 0}
+.dl{display:grid;grid-template-columns:36px 20px 1fr;white-space:pre-wrap;padding:1px 0}
+.dl .n{color:var(--dim);text-align:right;padding-right:8px;user-select:none;opacity:.6}
+.dl .s{user-select:none}
+.dl.add{background:var(--add)}.dl.add .s{color:var(--mint)}
+.dl.del{background:var(--del);color:var(--dim)}.dl.del .s{color:var(--pink)}
+.dl.hunk{color:var(--dim);padding:4px 14px}
+.dl.hunk{display:block}
+.k{color:var(--pink)}.v{color:var(--mint)}.c{color:var(--dim)}
+
+.checks{list-style:none;margin:0;padding:6px 0}
+.checks li{display:grid;grid-template-columns:24px 1fr;gap:6px;padding:7px 14px;align-items:baseline}
+.checks li+li{border-top:1px solid var(--line)}
+.ok{color:var(--mint)}.wait{color:var(--amber)}
+.checks small{display:block;color:var(--dim);font-size:12.5px}
+
+form{padding:16px 14px;display:flex;flex-direction:column;gap:16px}
+label,.lab{display:block;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+input[type=text],select,textarea,#cmd{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:10px 12px;font:inherit}
+textarea{min-height:76px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:520px){.seg{grid-template-columns:1fr}}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{margin:0;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:10px 12px;cursor:pointer;background:var(--bg);display:block}
+.seg label small{display:block;color:var(--dim);font-size:12px}
+.seg input:checked+label{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint)}
+.seg input:focus-visible+label{outline:2px solid var(--amber);outline-offset:2px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:5px;padding:11px 18px;background:var(--mint);color:#0f1a17;cursor:pointer}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line);font-weight:500}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.out{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px}
+.out pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px;font-size:13px}
+.out p{margin:0;color:var(--dim);font-size:13px}
+
+.term{padding:12px 14px 14px}
+#log{max-height:260px;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:10px;font-size:13px}
+#log .u{color:var(--mint)}#log .e{color:var(--pink)}
+.prompt{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.prompt span{color:var(--mint)}
+#cmd{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:6px 2px;background:transparent}
+footer{color:var(--dim);font-size:12.5px;text-align:center}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+</style>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="wrap">
+
+  <header class="bar">
+    <div><b id="who">keyanna</b><span class="sl">/</span><b>birthday</b><span class="sl">#</span><span id="pr"></span></div>
+    <span class="pill"><i></i>Open</span>
+  </header>
+
+  <section class="hero">
+    <h1 id="title" title="click me">Keyanna<span class="pp">.age++</span></h1>
+    <p class="sub"><span id="who2">keyanna</span> wants to merge <code>1 year</code> into <code>main</code> from <code>birthday-2026</code><span class="cursor" aria-hidden="true"></span></p>
+  </section>
+
+  <section class="panel" aria-label="Countdown">
+    <div class="ph"><b>uptime until merge</b><span id="whenLabel"></span></div>
+    <div class="count" id="count">
+      <div><strong id="cd">0</strong><span>days</span></div>
+      <div><strong id="ch">0</strong><span>hours</span></div>
+      <div><strong id="cm">0</strong><span>min</span></div>
+      <div><strong id="cs">0</strong><span>sec</span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Event details">
+    <div class="ph"><b>party.config.yml</b><span>+10 &minus;1</span></div>
+    <div class="diff" id="diff"></div>
+  </section>
+
+  <section class="panel" aria-label="Checks">
+    <div class="ph"><b>Checks</b><span>4 passing, 1 waiting on you</span></div>
+    <ul class="checks">
+      <li><span class="ok">&#10003;</span><span>cake: build succeeded<small>0 warnings, 1 candle per year, fire extinguisher not required</small></span></li>
+      <li><span class="ok">&#10003;</span><span>playlist: no merge conflicts<small>requests accepted via pull request only</small></span></li>
+      <li><span class="ok">&#10003;</span><span>dinner: dependencies resolved<small>steak and frites, both on the happy path</small></span></li>
+      <li><span class="ok">&#10003;</span><span>bugs: 0 found<small>outside of the code, anyway</small></span></li>
+      <li><span class="wait">&#9679;</span><span>your-review: pending<small>required before merge, scroll down</small></span></li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-label="RSVP">
+    <div class="ph"><b>Review changes</b><span>reply takes 20 seconds</span></div>
+    <form id="rsvp" autocomplete="off">
+      <div>
+        <span class="lab">Your verdict</span>
+        <div class="seg">
+          <div><input type="radio" name="v" id="v1" value="APPROVED" checked><label for="v1">Approve<small>I'm in, ship it</small></label></div>
+          <div><input type="radio" name="v" id="v2" value="COMMENT" ><label for="v2">Comment<small>maybe, will confirm</small></label></div>
+          <div><input type="radio" name="v" id="v3" value="CHANGES REQUESTED"><label for="v3">Request changes<small>can't make this date</small></label></div>
+        </div>
+      </div>
+      <div class="row">
+        <div><label for="nm">Your name</label><input type="text" id="nm" placeholder="e.g. your_username" required></div>
+        <div><label for="gs">Guests with you</label>
+          <select id="gs"><option value="0">just me</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></div>
+      </div>
+      <div><label for="nt">Comment (allergies, song requests, bad puns)</label><textarea id="nt"></textarea></div>
+      <div class="btns"><button class="btn" type="submit">Submit review</button></div>
+    </form>
+    <div class="out" id="out" hidden>
+      <p>Your reply is ready. The button opens WhatsApp with it filled in. Press send there to deliver it.</p>
+      <pre id="msg"></pre>
+      <div class="btns">
+        <a class="btn" id="wa" href="#" target="_blank" rel="noopener">Open WhatsApp</a>
+        <button class="btn alt" type="button" id="copy">Copy text</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Terminal">
+    <div class="ph"><b>terminal</b><span>type <i>help</i>, or poke around</span></div>
+    <div class="term">
+      <div id="log" aria-live="polite"></div>
+      <div class="prompt"><span>$</span><input id="cmd" type="text" aria-label="Command" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="help"></div>
+    </div>
+  </section>
+
+  <footer>built with too much caffeine and zero frameworks you've heard of</footer>
+</div>
+
+<script>
+/* ===== EDIT HERE: the only block you need to change ===== */
+const CONFIG = {
+  name: "Keyanna",
+  whatsapp: "96176753904",               // digits only with country code. Empty lets friends pick the chat.
+  start: "2026-11-30T19:00:00+02:00",    // ISO date and time (Beirut is +02:00)
+  dateLabel: "Mon, 30 Nov 2026",
+  timeLabel: "7:00 PM",
+  venue: "French Canteen, Broummana",
+  dress: "casual, but make it nice",
+  bring: ["good vibes", "an appetite"],
+  rsvpBy: "Sat, 28 Nov",
+  pr: 27
+};
+/* ======================================================== */
+
+const $ = id => document.getElementById(id);
+const lower = CONFIG.name.toLowerCase();
+$("who").textContent = lower; $("who2").textContent = lower; $("pr").textContent = CONFIG.pr;
+$("title").firstChild.nodeValue = CONFIG.name;
+$("whenLabel").textContent = CONFIG.dateLabel + " · " + CONFIG.timeLabel;
+
+const yml = [
+  ["del","plans: [\"sleep\", \"debug prod\"]"],
+  ["add","event: \"" + CONFIG.name + "'s birthday\""],
+  ["add","date: \"" + CONFIG.dateLabel + "\""],
+  ["add","time: \"" + CONFIG.timeLabel + " until the frites run out\""],
+  ["add","venue: \"" + CONFIG.venue + "\""],
+  ["add","menu: [\"steak\", \"frites\"]"],
+  ["add","dress_code: \"" + CONFIG.dress + "\""],
+  ["add","bring: [" + CONFIG.bring.map(b => "\"" + b + "\"").join(", ") + "]"],
+  ["add","laptops_required: false"],
+  ["add","talk_about_work: \"only if it's funny\""],
+  ["add","rsvp_by: \"" + CONFIG.rsvpBy + "\""]
+];
+(function renderDiff(){
+  const box = $("diff");
+  const hunk = document.createElement("div"); hunk.className = "dl hunk"; hunk.textContent = "@@ -1,1 +1,10 @@ main";
+  box.appendChild(hunk);
+  let o = 1, n = 1;
+  yml.forEach(([t, text]) => {
+    const row = document.createElement("div"); row.className = "dl " + t;
+    const num = document.createElement("span"); num.className = "n"; num.textContent = t === "del" ? o++ : n++;
+    const sg = document.createElement("span"); sg.className = "s"; sg.textContent = t === "add" ? "+" : "-";
+    const code = document.createElement("span");
+    const i = text.indexOf(":");
+    const k = document.createElement("span"); k.className = "k"; k.textContent = text.slice(0, i + 1);
+    const v = document.createElement("span"); v.className = "v"; v.textContent = text.slice(i + 1);
+    code.append(k, v);
+    row.append(num, sg, code); box.appendChild(row);
+  });
+})();
+
+/* countdown */
+const target = new Date(CONFIG.start).getTime();
+function tick(){
+  let d = target - Date.now();
+  const c = $("count");
+  if (d <= 0) {
+    c.className = "count done";
+    c.textContent = d > -864e5 ? "Merged. The party is live, why are you still reading this?" : "Deployed to production. Thanks for coming.";
+    return;
+  }
+  const s = Math.floor(d / 1000);
+  $("cd").textContent = Math.floor(s / 86400);
+  $("ch").textContent = String(Math.floor(s % 86400 / 3600)).padStart(2, "0");
+  $("cm").textContent = String(Math.floor(s % 3600 / 60)).padStart(2, "0");
+  $("cs").textContent = String(s % 60).padStart(2, "0");
+}
+tick(); setInterval(tick, 1000);
+
+/* confetti */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const cv = $("fx"), cx = cv.getContext("2d"); let parts = [], raf = 0;
+function size(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
+addEventListener("resize", size); size();
+function confetti(){
+  if (reduce) return;
+  const cols = ["#ff6f91", "#7ee0c3", "#ffc65c", "#e9e4f7"], W = cv.width, dpr = devicePixelRatio;
+  for (let i = 0; i < 140; i++) parts.push({
+    x: W / 2 + (Math.random() - .5) * W * .3, y: cv.height * .35, vx: (Math.random() - .5) * 16 * dpr, vy: (-Math.random() * 14 - 4) * dpr,
+    w: (6 + Math.random() * 6) * dpr, h: (3 + Math.random() * 5) * dpr, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % 4], life: 0
+  });
+  if (!raf) raf = requestAnimationFrame(frame);
+}
+function frame(){
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.y < cv.height + 40 && p.life < 220);
+  parts.forEach(p => {
+    p.vy += .35 * devicePixelRatio; p.x += p.vx; p.y += p.vy; p.vx *= .99; p.r += p.vr; p.life++;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); cx.restore();
+  });
+  raf = parts.length ? requestAnimationFrame(frame) : 0;
+}
+$("title").addEventListener("click", confetti);
+
+/* RSVP -> WhatsApp message */
+let msgText = "";
+$("rsvp").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = document.querySelector("input[name=v]:checked").value;
+  const g = $("gs").value, note = $("nt").value.trim();
+  msgText = "Review on " + CONFIG.name + "'s birthday PR #" + CONFIG.pr + ": [" + v + "]\n" +
+    "reviewer: " + $("nm").value.trim() + "\n" +
+    "guests: +" + g + (note ? "\ncomment: " + note : "") + "\n" +
+    "date checked: " + CONFIG.dateLabel + ", " + CONFIG.timeLabel;
+  $("msg").textContent = msgText;
+  $("wa").href = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msgText);
+  $("out").hidden = false;
+  $("out").scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "nearest"});
+  if (v === "APPROVED") confetti();
+});
+$("copy").addEventListener("click", async () => {
+  const b = $("copy");
+  try { await navigator.clipboard.writeText(msgText); b.textContent = "Copied"; }
+  catch (_) {
+    const r = document.createRange(); r.selectNodeContents($("msg"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press copy";
+  }
+  setTimeout(() => b.textContent = "Copy text", 1800);
+});
+
+/* tiny shell */
+const log = $("log");
+function say(text, cls){ const d = document.createElement("div"); if (cls) d.className = cls; d.textContent = text; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+const cmds = {
+  help: () => "commands: ls, whoami, date, where, cat party.config.yml, git log, rsvp, cake, sudo, clear",
+  ls: () => "party.config.yml  playlist.m3u  cake.exe  steak.js  frites.js  README.md  node_modules/ (do not open)",
+  whoami: () => "a guest with excellent taste in friends",
+  date: () => CONFIG.dateLabel + ", " + CONFIG.timeLabel,
+  where: () => CONFIG.venue,
+  "cat party.config.yml": () => yml.filter(r => r[0] === "add").map(r => r[1]).join("\n"),
+  "git log": () => "a1f3c9e  feat: celebrate another year\n7be02d1  fix: stop working on weekends\n03c8aa4  chore: buy cake\n9d41e7f  init: Keyanna was born",
+  rsvp: () => { $("rsvp").scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "center"}); $("nm").focus(); return "opening the review form..."; },
+  cake: () => { confetti(); return "cake.exe running\n  ░░░░░░░░░░ 100%\nexit code 0 (delicious)"; },
+  sudo: () => "keyanna is not in the sudoers file. This incident will be reported.",
+  "rm -rf /": () => "nice try. Birthdays are immutable.",
+  clear: () => { log.textContent = ""; return ""; }
+};
+say("Last login: just now. Type help.");
+$("cmd").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const raw = e.target.value.trim(); e.target.value = ""; if (!raw) return;
+  say("$ " + raw, "u");
+  const key = raw.toLowerCase();
+  const fn = cmds[key] || (key.startsWith("sudo") ? cmds.sudo : null);
+  if (!fn) { say("command not found: " + raw + ". Try help.", "e"); return; }
+  const out = fn(); if (out) say(out);
+});
+</script>
+
+</html>
