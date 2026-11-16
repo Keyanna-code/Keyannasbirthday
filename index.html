@@ -182,10 +182,10 @@ const CONFIG = {
   start: "2026-11-30T19:00:00+02:00",    // ISO date and time (Beirut is +02:00)
   dateLabel: "Mon, 30 Nov 2026",
   timeLabel: "7:00 PM",
-  venue: "French Canteen, Broummana",
-  dress: "Chic & Glam",
+  venue: "SUD, Naccache",
+  dress: "Chic & Elegant",
   bring: ["good vibes", "an appetite"],
-  rsvpBy: "Sat, 28 Nov",
+  rsvpBy: "Wed, 25 Nov",
   pr: 21
 };
 /* ======================================================== */
@@ -202,7 +202,7 @@ const yml = [
   ["add","date: \"" + CONFIG.dateLabel + "\""],
   ["add","time: \"" + CONFIG.timeLabel + " until the frites run out\""],
   ["add","venue: \"" + CONFIG.venue + "\""],
-  ["add","menu: [\"steak\", \"frites\"]"],
+  ["add","menu: [\"steak\", \"frites\",\"pizza\"],
   ["add","dress_code: \"" + CONFIG.dress + "\""],
   ["add","bring: [" + CONFIG.bring.map(b => "\"" + b + "\"").join(", ") + "]"],
   ["add","laptops_required: false"],
